@@ -1,0 +1,213 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:BeaconColorUtils.UI.ViewModels"
+             xmlns:conv="clr-namespace:BeaconColorUtils.UI.Converters"
+             x:Class="BeaconColorUtils.UI.Views.BestGlassSequenceView"
+             x:CompileBindings="True"
+             x:DataType="vm:BestGlassSequenceViewModel">
+
+    <UserControl.Resources>
+        <conv:BeaconTintConverter x:Key="BeaconTintConverter" />
+    </UserControl.Resources>
+
+
+    <ScrollViewer Padding="20"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+
+
+        <StackPanel Spacing="30" VerticalAlignment="Top">
+
+            <Grid ColumnDefinitions="150, 50, Auto" RowDefinitions="Auto, Auto, Auto, Auto" HorizontalAlignment="Left">
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Spacing="4" Margin="0,0,0,20">
+                    <TextBlock Text="Target Color:" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="Select the color that you want the beacon to be."
+                               FontSize="12"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <TextBox Grid.Row="1" Grid.Column="0"
+                         Width="105"
+                         HorizontalAlignment="Left"
+                         Margin="0,0,0,10"
+                         Padding="4,4,4,0"
+                         Text="{Binding HexInputText}"
+                         MaxLength="7"
+                         LostFocus="HexInput_LostFocus">
+                    <TextBox.InnerLeftContent>
+                        <Border BorderThickness="0,0,1,0"
+                                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                Margin="8,4,4,4"
+                                Padding="0,0,6,0">
+                            <TextBlock Text="#"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </Border>
+                    </TextBox.InnerLeftContent>
+
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding ValidateAndRevertHexCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+
+                <TextBlock Grid.Row="1" Grid.Column="2"
+                           Text="Beam Preview"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,10" />
+
+                <Button Grid.Row="2" Grid.Column="0"
+                        Width="105" Height="64"
+                        HorizontalAlignment="Left"
+                        Background="{Binding TargetBrush}"
+                        CornerRadius="6"
+                        Cursor="Hand">
+
+                    <Button.Template>
+                        <ControlTemplate>
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="{TemplateBinding CornerRadius}" />
+                        </ControlTemplate>
+                    </Button.Template>
+
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                            <ColorView Color="{Binding TargetColor}"
+                                       IsAlphaEnabled="False"
+                                       IsColorSpectrumVisible="True"
+                                       IsColorComponentsVisible="True"
+                                       IsColorPreviewVisible="True"
+                                       IsColorPaletteVisible="False"
+                                       IsAlphaVisible="False"
+                                       ColorModel="Rgba"
+                                       IsComponentTextInputVisible="True" />
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <Border Grid.Row="2" Grid.Column="2" Width="64" Height="64" Background="{Binding TargetBrush}">
+                    <Image Stretch="Fill" RenderOptions.BitmapInterpolationMode="None">
+                        <Image.Source>
+                            <MultiBinding Converter="{StaticResource BeaconTintConverter}">
+                                <Binding Path="BaseBeaconImage" />
+                                <Binding Path="TargetColor" />
+                            </MultiBinding>
+                        </Image.Source>
+                    </Image>
+                </Border>
+
+                <!-- ReSharper disable once Xaml.StyleClassNotFound -->
+                <Button Grid.Row="3" Grid.Column="0"
+                        Content="Calculate"
+                        Command="{Binding CalculateCommand}"
+                        Classes="accent"
+                        Width="150"
+                        Margin="0,20,0,0"
+                        HorizontalContentAlignment="Center" />
+
+                <StackPanel Grid.Row="3" Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Bottom"
+                            Spacing="10"
+                            Margin="0,20,0,0">
+
+                    <TextBlock Text="Max. Layers:"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold" />
+
+                    <Slider Width="120"
+                            Minimum="1"
+                            Maximum="6"
+                            Value="{Binding MaxLayers}"
+                            IsSnapToTickEnabled="True"
+                            TickFrequency="1" />
+
+                    <TextBlock Text="{Binding MaxLayers}"
+                               VerticalAlignment="Center"
+                               Width="15" />
+                </StackPanel>
+
+            </Grid>
+
+
+            <TextBlock Text="Only the necessary layers are shown. If 3 panes of glass produce the same result as 6, more economical sequence will be shown."
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       MaxWidth="900"
+                       HorizontalAlignment="Left"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+            <ItemsControl ItemsSource="{Binding Results}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="15"
+                                Margin="0,0,15,15"
+                                Width="250"
+                                Height="326">
+
+                            <Grid RowDefinitions="*,Auto">
+
+                                <StackPanel Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="{Binding Accuracy, StringFormat={}{0:0.###}%}"
+                                                   FontWeight="Bold" FontSize="16" />
+                                        <TextBlock Text="{Binding DeltaE, StringFormat='(ΔE: {0:0.###})'}"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="Medium"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+
+                                    <TextBlock Text="Top to bottom"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+
+                                    <ItemsControl ItemsSource="{Binding GlassPanes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4">
+                                                    <Image Source="{Binding Image}" Width="24" Height="24" />
+                                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <Border Grid.Row="1"
+                                        BorderThickness="0,1,0,0"
+                                        BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                        Margin="0,10,0,0"
+                                        Padding="0,10,0,0">
+
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Border Width="20" Height="20" CornerRadius="4"
+                                                Background="{Binding ResultColorHex}" />
+                                        <TextBlock Text="{Binding ResultColorHex}"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

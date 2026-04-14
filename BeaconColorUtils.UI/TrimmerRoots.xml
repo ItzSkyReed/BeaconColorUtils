@@ -1,0 +1,14 @@
+﻿<linker>
+    <assembly fullname="BeaconColorUtils.UI">
+        <type fullname="BeaconColorUtils.UI.ViewModels.*" preserve="all"/>
+        <type fullname="BeaconColorUtils.UI.Views.*" preserve="all"/>
+        <type fullname="BeaconColorUtils.UI.Converters.EnumDescriptionConverter" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="BeaconColorUtils.Core" preserve="all"/>
+
+    <assembly fullname="BeaconColorUtils.Infrastructure" preserve="all"/>
+
+    <assembly fullname="FluentAvalonia" preserve="all"/>
+    <assembly fullname="Avalonia.Controls.DataGrid" preserve="all"/>
+</linker>

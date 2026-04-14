@@ -1,0 +1,87 @@
+<windowing:AppWindow xmlns="https://github.com/avaloniaui"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:vm="using:BeaconColorUtils.UI.ViewModels"
+                     xmlns:views="using:BeaconColorUtils.UI.Views"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     xmlns:windowing="using:FluentAvalonia.UI.Windowing"
+                     xmlns:ui="using:FluentAvalonia.UI.Controls"
+                     MinWidth="1200"
+                     WindowStartupLocation="CenterScreen"
+                     MinHeight="800"
+                     Width="1920"
+                     Height="1080"
+                     x:CompileBindings="True"
+                     mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+                     x:Class="BeaconColorUtils.UI.Views.MainWindow"
+                     x:DataType="vm:MainWindowViewModel"
+                     Icon="/Assets/n_icon.ico"
+
+                     Title="Beacon Color Utils">
+
+    <windowing:AppWindow.Styles>
+        <Style Selector="windowing|AppWindow[ActualTransparencyLevel=None]">
+            <Setter Property="Background" Value="#FF2D2D2D" />
+        </Style>
+        <Style Selector="windowing|AppWindow[ActualTransparencyLevel=AcrylicBlur], windowing|AppWindow[ActualTransparencyLevel=Mica]">
+            <Setter Property="Background" Value="#80141414" />
+        </Style>
+
+
+    </windowing:AppWindow.Styles>
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Grid x:Name="RootGrid">
+        <ui:NavigationView IsVisible="{Binding !IsLoading}"
+                           PaneDisplayMode="Left"
+                           IsPaneOpen="True"
+                           SelectedItem="{Binding SelectedMenuItem, Mode=TwoWay}"
+                           IsSettingsVisible="False"
+                           OpenPaneLength="245">
+
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="Glass Sequence Calculator" Tag="0">
+                    <ui:NavigationViewItem.IconSource>
+                        <ui:PathIconSource Data="{StaticResource ColorPickerIcon}" />
+                    </ui:NavigationViewItem.IconSource>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItem Content="Beacon Gradient Generator" Tag="1">
+                    <ui:NavigationViewItem.IconSource>
+                        <ui:PathIconSource Data="{StaticResource PaletteIcon}" />
+                    </ui:NavigationViewItem.IconSource>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="Documentation" Tag="2">
+                    <ui:NavigationViewItem.IconSource>
+                        <ui:PathIconSource Data="{StaticResource DocumentIcon}" />
+                    </ui:NavigationViewItem.IconSource>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.MenuItems>
+
+            <Carousel SelectedIndex="{Binding SelectedTabIndex}">
+                <views:BestGlassSequenceView DataContext="{Binding NearestVm}" />
+
+                <views:GradientGeneratorView DataContext="{Binding GradientVm}" />
+                <views:DocumentationView DataContext="{Binding DocumentationVm}" />
+            </Carousel>
+        </ui:NavigationView>
+
+        <Border IsVisible="{Binding IsLoading}"
+                Background="Transparent">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="20">
+                <ui:ProgressRing IsIndeterminate="True" Width="100" Height="100" />
+                <TextBlock Text="Unpacking caches, this will take a few seconds..."
+                           FontSize="25"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+
+
+</windowing:AppWindow>

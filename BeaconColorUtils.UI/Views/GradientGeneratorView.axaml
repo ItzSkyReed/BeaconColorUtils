@@ -1,0 +1,304 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:BeaconColorUtils.UI.ViewModels"
+             xmlns:converters="using:BeaconColorUtils.UI.Converters"
+             x:CompileBindings="True"
+             x:Class="BeaconColorUtils.UI.Views.GradientGeneratorView"
+             x:DataType="vm:GradientGeneratorViewModel"
+             x:Name="Root"
+             Focusable="True">
+
+    <UserControl.Resources>
+        <converters:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+    </UserControl.Resources>
+
+    <ScrollViewer>
+        <Grid RowDefinitions="Auto, Auto, Auto"
+              Margin="20"
+              RowSpacing="24"
+              HorizontalAlignment="Stretch">
+
+            <StackPanel Grid.Row="0">
+
+                <TextBlock Text="Target colors for gradient"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                           FontWeight="SemiBold"
+                           FontSize="16"
+                           Margin="0,0,0,4" />
+                <TextBlock Text="The transition from each color to the next will take an equal number of steps."
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Margin="0,0,0,16" />
+
+                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled"
+                              Padding="0,0,0,8">
+                    <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Left">
+
+                        <ItemsControl ItemsSource="{Binding ColorStops}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="20" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="10">
+
+                                        <Border Width="95" Height="64"
+                                                CornerRadius="6"
+                                                ClipToBounds="True"
+                                                Cursor="Hand"
+                                                Classes="color-block">
+
+                                            <Border.Styles>
+                                                <Style Selector="Border.color-block Button.remove-btn">
+                                                    <Setter Property="Opacity" Value="0" />
+                                                    <Setter Property="IsHitTestVisible" Value="False" />
+                                                    <Setter Property="Transitions">
+                                                        <Transitions>
+                                                            <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                                                        </Transitions>
+                                                    </Setter>
+                                                </Style>
+
+                                                <Style Selector="Border.color-block:pointerover Button.remove-btn">
+                                                    <Setter Property="Opacity" Value="1" />
+                                                    <Setter Property="IsHitTestVisible" Value="True" />
+                                                </Style>
+
+                                                <Style Selector="Button.remove-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                                    <Setter Property="Background" Value="#CC990000" />
+                                                </Style>
+                                                <Style Selector="Button.remove-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                                    <Setter Property="Background" Value="#AA660000" />
+                                                </Style>
+                                            </Border.Styles>
+
+                                            <Panel>
+
+                                                <Button HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Stretch"
+                                                        Padding="0"
+                                                        CornerRadius="6"
+                                                        BorderThickness="0">
+                                                    <Button.Background>
+                                                        <SolidColorBrush Color="{Binding Color}" />
+                                                    </Button.Background>
+
+                                                    <Button.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    CornerRadius="{TemplateBinding CornerRadius}" />
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+
+                                                    <Button.Flyout>
+                                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                                            <ColorView Color="{Binding Color}"
+                                                                       IsAlphaEnabled="False"
+                                                                       IsColorSpectrumVisible="True"
+                                                                       IsColorComponentsVisible="True"
+                                                                       IsColorPreviewVisible="True"
+                                                                       IsColorPaletteVisible="False"
+                                                                       IsAlphaVisible="False"
+                                                                       ColorModel="Rgba"
+                                                                       IsComponentTextInputVisible="True" />
+                                                        </Flyout>
+                                                    </Button.Flyout>
+                                                </Button>
+
+                                                <Button Classes="remove-btn"
+                                                        Command="{Binding #Root.((vm:GradientGeneratorViewModel)DataContext).RemoveColorCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        IsVisible="{Binding CanRemove}"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Top"
+                                                        Width="24" Height="24"
+                                                        Margin="4"
+                                                        Padding="0"
+                                                        Background="#99000000"
+                                                        Foreground="White"
+                                                        BorderThickness="0"
+                                                        CornerRadius="12">
+                                                    <Grid Width="17" Height="17"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Margin="1.5, 1.5, 0, 0">
+                                                        <Polyline Points="3,3 13,13" Stroke="#FFFF4444" StrokeThickness="2.5" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                        <Polyline Points="3,13 13,3" Stroke="#FFFF4444" StrokeThickness="2.5" StrokeLineCap="Round" StrokeJoin="Round" />
+                                                    </Grid>
+                                                </Button>
+
+                                            </Panel>
+                                        </Border>
+
+                                        <TextBox Width="95"
+                                                 HorizontalAlignment="Center"
+                                                 Text="{Binding HexInputText}"
+                                                 MaxLength="7"
+                                                 Padding="4,4,4,0"
+                                                 Margin="0,0,0,10"
+                                                 LostFocus="HexInput_LostFocus">
+                                            <TextBox.InnerLeftContent>
+                                                <Border BorderThickness="0,0,1,0"
+                                                        BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                                        Margin="8,4,4,4"
+                                                        Padding="0,0,4,0">
+                                                    <TextBlock Text="#"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                </Border>
+                                            </TextBox.InnerLeftContent>
+                                            <TextBox.KeyBindings>
+                                                <KeyBinding Gesture="Enter" Command="{Binding ValidateAndRevertHexCommand}" />
+                                            </TextBox.KeyBindings>
+                                        </TextBox>
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Command="{Binding AddColorCommand}"
+                                Width="95" Height="64"
+                                VerticalAlignment="Top"
+                                CornerRadius="6"
+                                Background="#15000000"
+                                BorderBrush="{DynamicResource TextFillColorPrimaryBrush}"
+                                BorderThickness="2">
+                            <Grid Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Rectangle Width="2" Height="24" Fill="{DynamicResource TextFillColorSecondaryBrush}" RadiusX="2" RadiusY="2" />
+                                <Rectangle Width="24" Height="2" Fill="{DynamicResource TextFillColorSecondaryBrush}" RadiusX="2" RadiusY="2" />
+                            </Grid>
+                        </Button>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </StackPanel>
+
+            <WrapPanel Grid.Row="1" Orientation="Vertical">
+
+                <StackPanel Margin="0,0,24,6" VerticalAlignment="Bottom">
+                    <Button Content="Export NBT file"
+                            Command="{Binding ExportNbtCommand}"
+                            Classes="accent"
+                            Height="32"
+                            Padding="16,0" />
+                </StackPanel>
+
+                <StackPanel
+                    Spacing="6"
+                    Margin="0,0,24,6"
+                    Width="180"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Left">
+                    <TextBlock Text="Steps" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <NumericUpDown x:Name="StepsNumericInput"
+                                   Value="{Binding Steps}"
+                                   Minimum="{Binding ColorStops.Count}"
+                                   Maximum="500000"
+                                   ClipValueToMinMax="True"
+                                   FormatString="0"
+                                   Width="180"
+                                   Height="32"
+                                   ShowButtonSpinner="False"
+                                   AllowSpin="False"
+                                   KeyDown="StepsInput_KeyDown">
+                        <NumericUpDown.Styles>
+                            <Style Selector="NumericUpDown /template/ TextBox">
+                                <Setter Property="MaxLength" Value="6" />
+                            </Style>
+                        </NumericUpDown.Styles>
+                    </NumericUpDown>
+                </StackPanel>
+
+                <StackPanel
+                    Spacing="6"
+                    Margin="0,0,24,6"
+                    Width="180"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Left">
+                    <TextBlock Text="Hue Interpolation mode" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <ComboBox ItemsSource="{Binding InterpolationModes}"
+                              SelectedItem="{Binding SelectedInterpolationMode}"
+                              HorizontalAlignment="Stretch"
+                              Height="32">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Spacing="6" Margin="0,0,24,6" VerticalAlignment="Bottom">
+                    <ToggleSwitch IsChecked="{Binding IncludeBeacons}"
+                                  OffContent="Exclude beacons from NBT"
+                                  OnContent="Include beacons to NBT"
+                                  MinHeight="32" />
+                </StackPanel>
+
+                <StackPanel Spacing="6" Margin="0,0,24,6" VerticalAlignment="Bottom">
+                    <ToggleSwitch IsChecked="{Binding UseGlassPanes}"
+                                  OffContent="Use glass blocks"
+                                  OnContent="Use glass panes"
+                                  MinHeight="32" />
+                </StackPanel>
+
+                <StackPanel Spacing="6" Margin="0,0,24,6" VerticalAlignment="Bottom">
+                    <ToggleSwitch IsChecked="{Binding CompressDuplicates}"
+                                  OffContent="Keep all steps"
+                                  OnContent="Compress duplicates"
+                                  MinHeight="32" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal"
+                            Spacing="12"
+                            Margin="0,0,24,6"
+                            VerticalAlignment="Bottom"
+                            Height="32">
+
+                    <TextBlock Text="Max. layers:"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               VerticalAlignment="Center" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Slider Width="120"
+                                Minimum="1"
+                                Maximum="6"
+                                Value="{Binding MaxLayers}"
+                                IsSnapToTickEnabled="True"
+                                TickFrequency="1"
+                                Padding="0,0,0,5"
+                                VerticalAlignment="Center" />
+
+                        <TextBlock Text="{Binding MaxLayers}"
+                                   VerticalAlignment="Center"
+                                   FontWeight="SemiBold"
+                                   Width="15" />
+                    </StackPanel>
+                </StackPanel>
+
+            </WrapPanel>
+
+            <Grid Grid.Row="2" RowDefinitions="Auto, *">
+                <TextBlock Grid.Row="0"
+                           Text="Gradient Preview"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Margin="0,0,0,6" />
+
+                <Rectangle Grid.Row="1"
+                           x:Name="GradientRect"
+                           Fill="{Binding FinalGradientBrush}"
+                           RadiusX="8"
+                           RadiusY="8"
+                           MinHeight="120"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch" />
+            </Grid>
+
+        </Grid>
+    </ScrollViewer>
+
+</UserControl>
