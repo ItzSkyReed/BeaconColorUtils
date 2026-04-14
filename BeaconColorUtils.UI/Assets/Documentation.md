@@ -50,3 +50,6 @@ Oklab is a **perceptually uniform** color space.
 
 ### Why do we use a simple formula?
 While complex standards like CIEDE2000 exist to account for specific human vision quirks, we utilize Euclidean distance since the Oklab space is linear.
+
+
+Program version: `1.0`
