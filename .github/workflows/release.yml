@@ -48,10 +48,9 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore Dependencies
-        run: dotnet restore BeaconColorUtils.sln
+        run: dotnet restore -r ${{ matrix.rid }}
 
       - name: Publish ${{ matrix.rid }}
-
         run: dotnet publish BeaconColorUtils.UI/BeaconColorUtils.UI.csproj -c Release -r ${{ matrix.rid }} --no-restore -o ./publish-output
 
       - name: Create ZIP Archive (Windows)
