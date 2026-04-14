@@ -52,4 +52,4 @@ Oklab is a **perceptually uniform** color space.
 While complex standards like CIEDE2000 exist to account for specific human vision quirks, we utilize Euclidean distance since the Oklab space is linear.
 
 
-Program version: `1.0`
+Program version: _1.0.1_
