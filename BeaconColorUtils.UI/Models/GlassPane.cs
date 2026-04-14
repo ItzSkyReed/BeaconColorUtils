@@ -8,7 +8,7 @@ namespace BeaconColorUtils.UI.Models;
 
 public record GlassPane(GlassColors Color, string DisplayName, Bitmap Image)
 {
-    private const string BasePath = "avares://BeaconColorUtils.UI/Assets/Minecraft/GlassPanes/";
+    private const string BasePath = "avares://BeaconColorUtils/Assets/Minecraft/GlassPanes/";
 
     private static readonly Dictionary<GlassColors, GlassPane> All;
 

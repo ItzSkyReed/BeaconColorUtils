@@ -27,7 +27,7 @@
 
                 <md:MarkdownScrollViewer
                     x:Name="MarkdownViewer"
-                    Source="avares://BeaconColorUtils.UI/Assets/Documentation.md"
+                    Source="avares://BeaconColorUtils/Assets/Documentation.md"
                     Margin="40"
                     HorizontalAlignment="Stretch">
 

@@ -64,7 +64,7 @@ public partial class BestGlassSequenceViewModel : ViewModelBase
         _colorService = colorService;
 
         // Beacon beam loading
-        var uri = new Uri("avares://BeaconColorUtils.UI/Assets/Beacon_Beam.png");
+        var uri = new Uri("avares://BeaconColorUtils/Assets/Beacon_Beam.png");
         using var stream = AssetLoader.Open(uri);
         BaseBeaconImage = new Bitmap(stream);
 
