@@ -52,16 +52,15 @@ jobs:
 
       - name: Publish ${{ matrix.rid }}
         run: >
-          dotnet publish BeaconColorUtils.UI/BeaconColorUtils.UI.csproj
-          -c Release
-          -r ${{ matrix.rid }}
-          -p:AssemblyName=BeaconColorUtils
-          -p:PublishSingleFile=true
-          -p:PublishTrimmed=true
-          -p:EnableCompressionInSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:DebugType=None
-          -p:DebugSymbols=false
+          dotnet publish BeaconColorUtils.UI/BeaconColorUtils.UI.csproj 
+          -c Release 
+          -r ${{ matrix.rid }} 
+          -p:PublishSingleFile=true 
+          -p:PublishTrimmed=true 
+          -p:EnableCompressionInSingleFile=true 
+          -p:IncludeNativeLibrariesForSelfExtract=true 
+          -p:DebugType=None 
+          -p:DebugSymbols=false 
           -o ./publish-output
 
       - name: Create ZIP Archive (Windows)

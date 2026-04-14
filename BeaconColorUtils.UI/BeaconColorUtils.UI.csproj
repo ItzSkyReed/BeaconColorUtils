@@ -7,6 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <RootNamespace>BeaconColorUtils.UI</RootNamespace>
+        <AssemblyName>BeaconColorUtils</AssemblyName>
 
         <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
