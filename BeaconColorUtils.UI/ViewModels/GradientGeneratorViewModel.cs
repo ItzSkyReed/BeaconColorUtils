@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -16,7 +18,6 @@ using BeaconColorUtils.Core.Processing;
 using BeaconColorUtils.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using fNbt;
 
 namespace BeaconColorUtils.UI.ViewModels;
 
@@ -195,9 +196,10 @@ public partial class GradientGeneratorViewModel : ViewModelBase
 
                 if (file != null)
                 {
-                    var nbtFile = new NbtFile(nbt);
+                    await using var fileStream = File.Create(file.Path.LocalPath);
+                    await using var gzipStream = new GZipStream(fileStream, CompressionLevel.Optimal);
 
-                    nbtFile.SaveToFile(file.Path.LocalPath, NbtCompression.GZip);
+                    await gzipStream.WriteAsync(nbt, token);
                 }
             }
         }
