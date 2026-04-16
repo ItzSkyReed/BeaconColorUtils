@@ -1,13 +1,12 @@
-﻿using BeaconColorUtils.Core.Enums;
+﻿using System.Collections;
+using BeaconColorUtils.Core.Enums;
 using BeaconColorUtils.Core.Processing;
-
-namespace BeaconColorUtils.Core.Models;
-
-using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-public readonly struct ColoredGlassSequence<T> where T : struct, IBinaryInteger<T>
+namespace BeaconColorUtils.Core.Models;
+
+public readonly struct ColoredGlassSequence<T> : IReadOnlyList<GlassColors> where T : struct, IBinaryInteger<T>
 {
     public readonly T Value;
 
@@ -16,6 +15,31 @@ public readonly struct ColoredGlassSequence<T> where T : struct, IBinaryInteger<
         Value = value;
     }
 
+    public IEnumerator<GlassColors> GetEnumerator()
+    {
+        var len = Count;
+        for (var i = 0; i < len; i++)
+        {
+            yield return this[i];
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public GlassColors this[int index]
+    {
+        get
+        {
+            var shift = 3 + index * 4;
+
+            var masked = (Value >>> shift) & T.CreateTruncating(0b1111);
+
+            return (GlassColors)byte.CreateTruncating(masked);
+        }
+    }
 
     public ColoredGlassSequence(ReadOnlySpan<byte> colors)
     {
@@ -35,16 +59,7 @@ public readonly struct ColoredGlassSequence<T> where T : struct, IBinaryInteger<
         Value = packedValue;
     }
 
-    public int Length => int.CreateTruncating(Value & T.CreateTruncating(0b111));
-
-    public byte GetColor(int index)
-    {
-        var shift = 3 + index * 4;
-
-        var masked = (Value >>> shift) & T.CreateTruncating(0b1111);
-
-        return byte.CreateTruncating(masked);
-    }
+    public int Count => int.CreateTruncating(Value & T.CreateTruncating(0b111));
 
     /// <summary>
     /// Returns a mapping dictionary: Color ID -> Color name (For example: 0 -> "White").
@@ -56,6 +71,7 @@ public readonly struct ColoredGlassSequence<T> where T : struct, IBinaryInteger<
         {
             map[i] = MinecraftBlender.ColorNames[i];
         }
+
         return map;
     }
 
@@ -64,12 +80,13 @@ public readonly struct ColoredGlassSequence<T> where T : struct, IBinaryInteger<
     /// </summary>
     public string[] GetColorNames()
     {
-        var len = Length;
+        var len = Count;
         var names = new string[len];
         for (var i = 0; i < len; i++)
         {
-            names[i] = MinecraftBlender.ColorNames[GetColor(i)];
+            names[i] = MinecraftBlender.ColorNames[(byte)this[i]];
         }
+
         return names;
     }
 
@@ -80,12 +97,13 @@ public readonly struct ColoredGlassSequence<T> where T : struct, IBinaryInteger<
 
     public GlassColors[] ToArray()
     {
-        var len = Length;
+        var len = Count;
         var arr = new GlassColors[len];
         for (var i = 0; i < len; i++)
         {
-            arr[i] = (GlassColors)GetColor(i);
+            arr[i] = this[i];
         }
+
         return arr;
     }
 }
