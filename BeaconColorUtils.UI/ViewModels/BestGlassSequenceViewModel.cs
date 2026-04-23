@@ -109,7 +109,7 @@ public partial class BestGlassSequenceViewModel : ViewModelBase
         glasses.AddRange(color.ToArray().Select(GlassPane.FromColor));
 
 
-        return new CalculationResult(accuracy, deltaE, resultRgb.toHexString(), glasses);
+        return new CalculationResult(accuracy, deltaE, resultRgb.ToHexString(), glasses);
     }
 
     [RelayCommand]

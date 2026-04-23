@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
@@ -19,7 +18,7 @@ public class EnumDescriptionConverter : IValueConverter
         return attribute?.Description ?? enumValue.ToString();
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

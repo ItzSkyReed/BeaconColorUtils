@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using BeaconColorUtils.Core.Services;
-using BeaconColorUtils.UI.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BeaconColorUtils.UI.ViewModels;

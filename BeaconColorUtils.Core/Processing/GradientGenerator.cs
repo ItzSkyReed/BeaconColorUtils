@@ -1,5 +1,4 @@
-﻿using System;
-using BeaconColorUtils.Core.Enums;
+﻿using BeaconColorUtils.Core.Enums;
 
 namespace BeaconColorUtils.Core.Processing;
 

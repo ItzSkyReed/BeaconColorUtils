@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using BeaconColorUtils.Core.Cache;
+﻿using BeaconColorUtils.Core.Cache;
 using BeaconColorUtils.Core.Interfaces;
 
 namespace BeaconColorUtils.Infrastructure.Storage;

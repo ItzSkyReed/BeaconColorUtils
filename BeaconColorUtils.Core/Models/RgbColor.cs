@@ -18,7 +18,7 @@ public readonly record struct RgbColor(byte R, byte G, byte B)
         (byte)(index & 0xFF)
     );
 
-    public string toHexString()
+    public string ToHexString()
     {
         return $"#{R:X2}{G:X2}{B:X2}";
     }

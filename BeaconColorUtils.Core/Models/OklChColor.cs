@@ -1,5 +1,4 @@
-﻿using System;
-using BeaconColorUtils.Core.Enums;
+﻿using BeaconColorUtils.Core.Enums;
 
 namespace BeaconColorUtils.Core.Models;
 
@@ -30,7 +29,6 @@ public readonly record struct OklChColor(float L, float C, float H)
         var h1 = H;
         var h2 = target.H;
 
-        // Если цвет серый, его угол не имеет значения
         if (C < 0.0001f) h1 = h2;
         if (target.C < 0.0001f) h2 = h1;
 
@@ -39,13 +37,27 @@ public readonly record struct OklChColor(float L, float C, float H)
         switch (mode)
         {
             case HueInterpolationMode.Shorter:
-                if (deltaH > 180) deltaH -= 360;
-                else if (deltaH < -180) deltaH += 360;
+                switch (deltaH)
+                {
+                    case > 180:
+                        deltaH -= 360;
+                        break;
+                    case < -180:
+                        deltaH += 360;
+                        break;
+                }
                 break;
 
             case HueInterpolationMode.Longer:
-                if (deltaH > 0 && deltaH <= 180) deltaH -= 360;
-                else if (deltaH > -180 && deltaH <= 0) deltaH += 360;
+                switch (deltaH)
+                {
+                    case > 0 and <= 180:
+                        deltaH -= 360;
+                        break;
+                    case > -180 and <= 0:
+                        deltaH += 360;
+                        break;
+                }
                 break;
 
             case HueInterpolationMode.Increasing:
