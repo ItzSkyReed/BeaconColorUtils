@@ -12,7 +12,7 @@ using pre-made caches to find the exact glass sequences you need efficiently.
 ## Key Features
 
 * **Glass Sequence Calculator**
-  Enter any Hex/RGB code, and the program finds the closest possible match using up to 6 glass layers. It includes a real-time beam preview and an **Economical Mode** that automatically prioritizes shorter glass sequences if they yield the same visual result.
+  Enter any Hex/RGB code, and the program finds the closest possible match using up to 8 glass layers. It includes a real-time beam preview and an **Economical Mode** that automatically prioritizes shorter glass sequences if they yield the same visual result.
 * **Beacon Gradient Generator**
   Create smooth, multi-stop transitions between key colors. You can define exactly how many beacons should be in your row and choose from various interpolation modes to ensure vibrant, natural blends.
 * **NBT Export**
