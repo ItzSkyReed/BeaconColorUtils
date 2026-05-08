@@ -157,7 +157,18 @@ public partial class GradientGeneratorViewModel : ViewModelBase
 
                 foreach (var color in colors)
                 {
-                    var current = _colorService.GetBestMatch<T>(color, MaxLayers);
+                    var colorArray = _colorService.GetBestMatch(color, MaxLayers);
+
+                    if (colorArray.Length == 0) continue;
+
+                    Span<byte> byteSpan = new byte[colorArray.Length];
+                    for (var i = 0; i < colorArray.Length; i++)
+                    {
+                        byteSpan[i] = (byte)colorArray[i];
+                    }
+
+                    var current = new ColoredGlassSequence<T>(byteSpan);
+
 
                     if (CompressDuplicates)
                     {

@@ -1,15 +1,17 @@
-﻿using BeaconColorUtils.Core.Enums;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using BeaconColorUtils.Core.Enums;
 using BeaconColorUtils.Core.Models;
 
 namespace BeaconColorUtils.Core.Processing;
 
 public static class MinecraftBlender
 {
-    // Precalculated arrays of normalized colors (0.0..1.0)
-    // Splitting into 3 arrays slightly speeds up access from the processor cache
-    private static readonly float[] BaseR = new float[16];
-    private static readonly float[] BaseG = new float[16];
-    private static readonly float[] BaseB = new float[16];
+    private static readonly Vector128<float>[] BaseVectors = new Vector128<float>[16];
+
+    private static readonly Vector128<float> HalfVector = Vector128.Create(0.5f);
+    private static readonly Vector128<float> ByteScaleVector = Vector128.Create(255f);
 
     public static readonly uint[] HexColors =
     [
@@ -29,12 +31,13 @@ public static class MinecraftBlender
 
     static MinecraftBlender()
     {
-
         for (var i = 0; i < 16; i++)
         {
-            BaseR[i] = ((HexColors[i] >> 16) & 0xFF) / 255f;
-            BaseG[i] = ((HexColors[i] >> 8) & 0xFF) / 255f;
-            BaseB[i] = (HexColors[i] & 0xFF) / 255f;
+            var r = ((HexColors[i] >> 16) & 0xFF) / 255f;
+            var g = ((HexColors[i] >> 8) & 0xFF) / 255f;
+            var b = (HexColors[i] & 0xFF) / 255f;
+
+            BaseVectors[i] = Vector128.Create(r, g, b, 0f);
         }
     }
 
@@ -42,26 +45,34 @@ public static class MinecraftBlender
     /// <summary>
     /// Mixes the glass sequence according to Minecraft rules.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RgbColor Blend(ReadOnlySpan<GlassColors> sequence)
     {
+        if (sequence.IsEmpty) return default;
 
-        var firstColor = (int)sequence[0];
-        var totalR = BaseR[firstColor];
-        var totalG = BaseG[firstColor];
-        var totalB = BaseB[firstColor];
+        ref var sequenceRef = ref MemoryMarshal.GetReference(sequence);
+        ref var baseVectorsRef = ref MemoryMarshal.GetArrayDataReference(BaseVectors);
+        var length = sequence.Length;
 
-        for (var i = 1; i < sequence.Length; i++)
+        var firstColor = (int)sequenceRef;
+        var total = Unsafe.Add(ref baseVectorsRef, firstColor);
+
+        for (var i = 1; i < length; i++)
         {
-            var colorId = (int)sequence[i];
-            totalR = (totalR + BaseR[colorId]) / 2f;
-            totalG = (totalG + BaseG[colorId]) / 2f;
-            totalB = (totalB + BaseB[colorId]) / 2f;
+            var colorId = (int)Unsafe.Add(ref sequenceRef, i);
+            var nextColor = Unsafe.Add(ref baseVectorsRef, colorId);
+
+            total = (total + nextColor) * HalfVector;
         }
 
+        // Multiply by 255 before converting to bytes
+        total *= ByteScaleVector;
+
+
         return new RgbColor(
-            (byte)(totalR * 255f),
-            (byte)(totalG * 255f),
-            (byte)(totalB * 255f)
+            (byte)total.ToScalar(),
+            (byte)total.GetElement(1),
+            (byte)total.GetElement(2)
         );
     }
 }

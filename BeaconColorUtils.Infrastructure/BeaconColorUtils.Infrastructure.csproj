@@ -12,18 +12,16 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Assets\cache_3_glasses.zst" />
-      <EmbeddedResource Include="Assets\cache_3_glasses.zst" />
-      <None Remove="Assets\cache_4_glasses.zst" />
-      <EmbeddedResource Include="Assets\cache_4_glasses.zst" />
-      <None Remove="Assets\cache_5_glasses.zst" />
-      <EmbeddedResource Include="Assets\cache_5_glasses.zst" />
-      <None Remove="Assets\cache_6_glasses.zst" />
-      <EmbeddedResource Include="Assets\cache_6_glasses.zst" />
+      <None Remove="Assets\beacon_caches.zst" />
+      <EmbeddedResource Include="Assets\beacon_caches.zst" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\BeaconColorUtils.Core\BeaconColorUtils.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Assets\beacon_caches.zst" />
     </ItemGroup>
 
 </Project>

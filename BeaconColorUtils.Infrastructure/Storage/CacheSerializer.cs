@@ -1,54 +1,94 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ZstdSharp;
+using System.Reflection;
+using BeaconColorUtils.Core.Models;
+
 
 namespace BeaconColorUtils.Infrastructure.Storage;
 
-public static class CacheSerializer
+public class CacheSerializer
 {
-    private const int CacheSize = 16_777_216;
+    // KD-Trees (2-5 layers)
+    public Dictionary<int, OklabKdTree<short>.KdNode[]> KdTreesShort { get; } = new();
+    public Dictionary<int, OklabKdTree<int>.KdNode[]> KdTreesInt { get; } = new();
 
-    public static T[] LoadFromEmbeddedResource<T>(string resourceName) where T : unmanaged, IBinaryInteger<T>
+    // LUTs (6-15 layers)
+    public Dictionary<int, int[]> LutsInt { get; } = new();
+    public Dictionary<int, long[]> LutsLong { get; } = new();
+
+    private enum StructType : byte
     {
-        var assembly = typeof(CacheSerializer).Assembly;
+        KdTree = 0,
+        Lut = 1
+    }
+
+    private enum DataType : byte
+    {
+        Short = 0,
+        Int = 1,
+        Long = 2
+    }
+
+    /// <summary>
+    /// Loads all trees and LUTs from a single .zst file embedded in the assembly resources
+    /// </summary>
+    public static CacheSerializer LoadFromEmbeddedResource(string resourceName)
+    {
+        var storage = new CacheSerializer();
+
+        var assembly = Assembly.GetExecutingAssembly();
         using var resourceStream = assembly.GetManifestResourceStream(resourceName);
 
         if (resourceStream == null)
             throw new FileNotFoundException($"Embedded resource '{resourceName}' not found.");
 
-        var cacheData = GC.AllocateUninitializedArray<T>(CacheSize, pinned: true);
-        using var zstdStream = new DecompressionStream(resourceStream);
+        using var zstd = new DecompressionStream(resourceStream);
+        using var reader = new BinaryReader(zstd);
 
-        if (Unsafe.SizeOf<T>() == 4)
+        var totalBlocks = reader.ReadInt32();
+
+        for (var i = 0; i < totalBlocks; i++)
         {
-            var cacheBytes = MemoryMarshal.AsBytes(cacheData.AsSpan());
-            zstdStream.ReadExactly(cacheBytes);
-        }
+            var layer = reader.ReadInt32();
+            var sType = (StructType)reader.ReadByte();
+            var dType = (DataType)reader.ReadByte();
+            var byteLength = reader.ReadInt32();
 
-        else if (Unsafe.SizeOf<T>() == 2)
-        {
-            Span<uint> buffer = stackalloc uint[8192];
-            var bufferBytes = MemoryMarshal.AsBytes(buffer);
-
-            var totalWritten = 0;
-            while (totalWritten < CacheSize)
+            switch (sType)
             {
-                var elementsToRead = Math.Min(buffer.Length, CacheSize - totalWritten);
-                var bytesToRead = elementsToRead * sizeof(uint);
-
-                zstdStream.ReadExactly(bufferBytes[..bytesToRead]);
-                for (var i = 0; i < elementsToRead; i++)
-                {
-                    cacheData[totalWritten++] = T.CreateTruncating(buffer[i]);
-                }
+                case StructType.KdTree when dType == DataType.Short:
+                    storage.KdTreesShort[layer] = ReadArray<OklabKdTree<short>.KdNode>(zstd, byteLength);
+                    break;
+                case StructType.KdTree when dType == DataType.Int:
+                    storage.KdTreesInt[layer] = ReadArray<OklabKdTree<int>.KdNode>(zstd, byteLength);
+                    break;
+                case StructType.Lut when dType == DataType.Int:
+                    storage.LutsInt[layer] = ReadArray<int>(zstd, byteLength);
+                    break;
+                case StructType.Lut when dType == DataType.Long:
+                    storage.LutsLong[layer] = ReadArray<long>(zstd, byteLength);
+                    break;
+                default:
+                    var discardBuffer = new byte[byteLength];
+                    zstd.ReadExactly(discardBuffer);
+                    break;
             }
         }
-        else
-        {
-            throw new NotSupportedException($"Type size of {Unsafe.SizeOf<T>()} is not supported.");
-        }
 
-        return cacheData;
+        return storage;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T[] ReadArray<T>(DecompressionStream zstd, int byteLength) where T : unmanaged
+    {
+        var arrayLength = byteLength / Unsafe.SizeOf<T>();
+
+        var array = GC.AllocateUninitializedArray<T>(arrayLength, pinned: true);
+        var byteSpan = MemoryMarshal.AsBytes(array.AsSpan());
+
+        zstd.ReadExactly(byteSpan);
+
+        return array;
     }
 }

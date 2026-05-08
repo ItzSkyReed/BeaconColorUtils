@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace BeaconColorUtils.Core.Models;
 
-public readonly struct ColoredGlassSequence<T> : IReadOnlyList<GlassColors> where T : struct, IBinaryInteger<T>
+public readonly struct ColoredGlassSequence<T> : IReadOnlyList<GlassColors>, IEquatable<ColoredGlassSequence<T>> where T : struct, IBinaryInteger<T>
 {
     public readonly T Value;
 
@@ -33,17 +33,19 @@ public readonly struct ColoredGlassSequence<T> : IReadOnlyList<GlassColors> wher
     {
         get
         {
-            var shift = 3 + index * 4;
-
+            var shift = 4 + index * 4;
             var masked = (Value >>> shift) & T.CreateTruncating(0b1111);
-
             return (GlassColors)byte.CreateTruncating(masked);
         }
     }
 
     public ColoredGlassSequence(ReadOnlySpan<byte> colors)
     {
-        var maxColors = Unsafe.SizeOf<T>() == 2 ? 3 : 6;
+
+        // short (16 bit): (16 - 3) / 4 = 3
+        // int   (32 bit): (32 - 3) / 4 = 7
+        // long  (64 bit): (64 - 3) / 4 = 15
+        var maxColors = (Unsafe.SizeOf<T>() * 8 - 4) / 4;
 
         if (colors.Length < 1 || colors.Length > maxColors)
             throw new ArgumentException($"For {typeof(T).Name}, length must be from 1 to {maxColors}");
@@ -53,13 +55,38 @@ public readonly struct ColoredGlassSequence<T> : IReadOnlyList<GlassColors> wher
         for (var i = 0; i < colors.Length; i++)
         {
             var colorVal = T.CreateTruncating(colors[i]);
-            packedValue |= colorVal << (3 + i * 4);
+            packedValue |= colorVal << (4 + i * 4);
         }
 
         Value = packedValue;
     }
 
-    public int Count => int.CreateTruncating(Value & T.CreateTruncating(0b111));
+    public int Count => int.CreateTruncating(Value & T.CreateTruncating(0b1111));
+
+    public bool Equals(ColoredGlassSequence<T> other)
+    {
+        return Value.Equals(other.Value);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is ColoredGlassSequence<T> other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Value);
+    }
+
+    public static bool operator ==(ColoredGlassSequence<T> left, ColoredGlassSequence<T> right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ColoredGlassSequence<T> left, ColoredGlassSequence<T> right)
+    {
+        return !left.Equals(right);
+    }
 
     /// <summary>
     /// Returns a mapping dictionary: Color ID -> Color name (For example: 0 -> "White").

@@ -27,7 +27,7 @@ public partial class BestGlassSequenceViewModel : ViewModelBase
     };
 
     [ObservableProperty]
-    public partial int MaxLayers { get; set; } = 6;
+    public partial int MaxLayers { get; set; } = 8;
 
     private Color _previousColor;
     private int _previousMaxLayers;
@@ -97,17 +97,16 @@ public partial class BestGlassSequenceViewModel : ViewModelBase
     private CalculationResult GetResultTemplate(int layersCount)
     {
         var targetColor = new RgbColor(TargetColor.R, TargetColor.G, TargetColor.B);
-        var color = _colorService.GetBestMatch<int>(targetColor, layersCount);
 
-        var resultRgb = MinecraftBlender.Blend(color.ToArray());
+        var colorArray = _colorService.GetBestMatch(targetColor, layersCount);
+
+        var resultRgb = MinecraftBlender.Blend(colorArray);
 
         var deltaE = OklabColor.DeltaE(OklabColor.FromRgb(targetColor), OklabColor.FromRgb(resultRgb));
-
         var accuracy = OklabColor.GetSimilarityScore(deltaE);
 
         var glasses = new List<GlassPane>(layersCount);
-        glasses.AddRange(color.ToArray().Select(GlassPane.FromColor));
-
+        glasses.AddRange(colorArray.Select(GlassPane.FromColor));
 
         return new CalculationResult(accuracy, deltaE, resultRgb.ToHexString(), glasses);
     }

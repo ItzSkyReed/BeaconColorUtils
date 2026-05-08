@@ -266,7 +266,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <Slider Width="120"
                                 Minimum="1"
-                                Maximum="6"
+                                Maximum="8"
                                 Value="{Binding MaxLayers}"
                                 IsSnapToTickEnabled="True"
                                 TickFrequency="1"
@@ -294,7 +294,9 @@
                            RadiusX="8"
                            RadiusY="8"
                            MinHeight="120"
-                           HorizontalAlignment="Stretch"
+                           MaxWidth="1000"
+                           HorizontalAlignment="Left"
+                           Width="{Binding $parent[Grid].Bounds.Width}"
                            VerticalAlignment="Stretch" />
             </Grid>
 

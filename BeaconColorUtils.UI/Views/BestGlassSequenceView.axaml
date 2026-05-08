@@ -120,7 +120,7 @@
 
                     <Slider Width="120"
                             Minimum="1"
-                            Maximum="6"
+                            Maximum="8"
                             Value="{Binding MaxLayers}"
                             IsSnapToTickEnabled="True"
                             TickFrequency="1" />
@@ -133,7 +133,7 @@
             </Grid>
 
 
-            <TextBlock Text="Only the necessary layers are shown. If 3 panes of glass produce the same result as 6, more economical sequence will be shown."
+            <TextBlock Text="Only the necessary layers are shown. If 3 panes of glass produce the same result as 8, more economical sequence will be shown."
                        FontSize="12"
                        TextWrapping="Wrap"
                        MaxWidth="900"
@@ -156,7 +156,7 @@
                                 Padding="15"
                                 Margin="0,0,15,15"
                                 Width="250"
-                                Height="326">
+                                Height="380">
 
                             <Grid RowDefinitions="*,Auto">
 

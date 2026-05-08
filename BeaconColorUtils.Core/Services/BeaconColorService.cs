@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-using BeaconColorUtils.Core.Cache;
-using BeaconColorUtils.Core.Enums;
+﻿using BeaconColorUtils.Core.Enums;
 using BeaconColorUtils.Core.Interfaces;
 using BeaconColorUtils.Core.Models;
 using BeaconColorUtils.Core.Processing;
@@ -9,12 +7,14 @@ namespace BeaconColorUtils.Core.Services;
 
 public class BeaconColorService(IBeaconDataLoader dataLoader)
 {
-    private SequenceCache<ushort>? _cache3Layers;
-    private SequenceCache<uint>? _cache4Layers;
-    private SequenceCache<uint>? _cache5Layers;
-    private SequenceCache<uint>? _cache6Layers;
-    private OklabColor[]? _cache2Layers;
-    private OklabColor[]? _cache1Layer;
+    private SequenceLut<long> _lut8Layers = null!;
+    private SequenceLut<int> _lut7Layers = null!;
+    private SequenceLut<int> _lut6Layers = null!;
+    private OklabKdTree<int> _kdTree5Layers = null!;
+    private OklabKdTree<int> _kdTree4Layers = null!;
+    private OklabKdTree<short> _kdTree3Layers = null!;
+    private OklabKdTree<short> _kdTree2Layers = null!;
+    private OklabColor[] _cache1Layer = null!;
 
 
     private bool _isInitialized;
@@ -26,41 +26,16 @@ public class BeaconColorService(IBeaconDataLoader dataLoader)
 
         var caches = await dataLoader.LoadCachesAsync();
 
-        _cache3Layers = caches.Cache3;
-        _cache4Layers = caches.Cache4;
-        _cache5Layers = caches.Cache5;
-        _cache6Layers = caches.Cache6;
-
-        InitTwoColorsCache();
+        _lut8Layers = caches.Lut8;
+        _lut7Layers = caches.Lut7;
+        _lut6Layers = caches.Lut6;
+        _kdTree5Layers = caches.KdTree5;
+        _kdTree4Layers = caches.KdTree4;
+        _kdTree3Layers = caches.KdTree3;
+        _kdTree2Layers = caches.KdTree2;
         InitOneColorCache();
 
         _isInitialized = true;
-    }
-
-    private void InitTwoColorsCache()
-    {
-        var colors = Enum.GetValues<GlassColors>();
-        var n = colors.Length;
-        var count = n * n;
-
-        _cache2Layers = new OklabColor[count];
-
-        var index = 0;
-
-        Span<GlassColors> sequence = stackalloc GlassColors[2];
-
-        for (var i = 0; i < n; i++)
-        {
-            var c1 = colors[i];
-            for (var j = 0; j < n; j++)
-            {
-                sequence[0] = c1;
-                sequence[1] = colors[j];
-
-                var blendedRgb = MinecraftBlender.Blend(sequence);
-                _cache2Layers[index++] = OklabColor.FromRgb(blendedRgb);
-            }
-        }
     }
 
     private void InitOneColorCache()
@@ -82,78 +57,44 @@ public class BeaconColorService(IBeaconDataLoader dataLoader)
     }
 
     /// <summary>
-    /// Used to find the closest sequence for 1/2 layers of glass
+    /// Used to find the closest sequence for 1 layer of glass
     /// </summary>
-    private ColoredGlassSequence<T> FindClosestSequence<T>(RgbColor targetColor, int layers) where T : struct, IBinaryInteger<T>
+    private GlassColors[] FindClosestSequence(RgbColor targetColor)
     {
         if (!_isInitialized)
             throw new InvalidOperationException("Service not initialized");
 
-        if (layers is < 1 or > 2)
-            throw new ArgumentOutOfRangeException(nameof(layers), "Supports only 1 or 2 layers.");
-
         var targetOklab = OklabColor.FromRgb(targetColor);
-
         var minDelta = float.MaxValue;
         var bestIndex = -1;
 
-        if (layers == 1)
+        for (var i = 0; i < _cache1Layer.Length; i++)
         {
-            for (var i = 0; i < _cache1Layer!.Length; i++)
-            {
-                var delta = OklabColor.DeltaE(targetOklab, _cache1Layer[i]);
-                if (!(delta < minDelta)) continue;
-                minDelta = delta;
-                bestIndex = i;
-            }
-
-            Span<byte> sequence = stackalloc byte[1];
-            // ReSharper disable once IntVariableOverflowInUncheckedContext
-            sequence[0] = (byte)bestIndex;
-
-            return new ColoredGlassSequence<T>(sequence);
+            var delta = OklabColor.DeltaE(targetOklab, _cache1Layer[i]);
+            if (!(delta < minDelta)) continue;
+            minDelta = delta;
+            bestIndex = i;
         }
-        else // layers == 2
-        {
-            for (var i = 0; i < _cache2Layers!.Length; i++)
-            {
-                var delta = OklabColor.DeltaE(targetOklab, _cache2Layers[i]);
-                if (!(delta < minDelta)) continue;
-                minDelta = delta;
-                bestIndex = i;
-            }
 
-            var n = _cache1Layer?.Length ?? 16;
-            var c1Index = bestIndex / n;
-            var c2Index = bestIndex % n;
-
-            if (c1Index == c2Index)
-            {
-                Span<byte> sequence1B = stackalloc byte[1];
-                sequence1B[0] = (byte)c1Index;
-                return new ColoredGlassSequence<T>(sequence1B);
-            }
-
-            Span<byte> sequence = stackalloc byte[2];
-            sequence[0] = (byte)c1Index;
-            sequence[1] = (byte)c2Index;
-
-            return new ColoredGlassSequence<T>(sequence);
-        }
+        // ReSharper disable once IntVariableOverflowInUncheckedContext
+        return [(GlassColors)bestIndex];
     }
 
-    public ColoredGlassSequence<T> GetBestMatch<T>(RgbColor targetColor, int layersCount) where T : struct, IBinaryInteger<T>
+    public GlassColors[] GetBestMatch(RgbColor targetColor, int layersCount)
     {
         if (!_isInitialized)
             throw new InvalidOperationException("Service not initialized");
 
         return layersCount switch
         {
-            1 or 2 => FindClosestSequence<T>(targetColor, layersCount),
-            3 => new ColoredGlassSequence<T>(T.CreateTruncating(_cache3Layers!.GetSequence(targetColor).Value)),
-            4 => new ColoredGlassSequence<T>(T.CreateTruncating(_cache4Layers!.GetSequence(targetColor).Value)),
-            5 => new ColoredGlassSequence<T>(T.CreateTruncating(_cache5Layers!.GetSequence(targetColor).Value)),
-            6 => new ColoredGlassSequence<T>(T.CreateTruncating(_cache6Layers!.GetSequence(targetColor).Value)),
+            1 => FindClosestSequence(targetColor),
+            2 => new ColoredGlassSequence<short>(_kdTree2Layers.FindNearest(targetColor).Value).ToArray(),
+            3 => new ColoredGlassSequence<short>(_kdTree3Layers.FindNearest(targetColor).Value).ToArray(),
+            4 => new ColoredGlassSequence<int>(_kdTree4Layers.FindNearest(targetColor).Value).ToArray(),
+            5 => new ColoredGlassSequence<int>(_kdTree5Layers.FindNearest(targetColor).Value).ToArray(),
+            6 => new ColoredGlassSequence<int>(_lut6Layers.GetSequence(targetColor).Value).ToArray(),
+            7 => new ColoredGlassSequence<int>(_lut7Layers.GetSequence(targetColor).Value).ToArray(),
+            8 => new ColoredGlassSequence<long>(_lut8Layers.GetSequence(targetColor).Value).ToArray(),
             _ => throw new ArgumentOutOfRangeException(nameof(layersCount))
         };
     }

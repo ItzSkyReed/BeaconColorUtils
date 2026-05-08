@@ -15,7 +15,7 @@ This program handles the heavy mathematical lifting by using pre-made caches, al
 
 ### 1. Glass Sequence Calculator
 * **Hex/RGB Search:** Enter any color code, and the program will find a combination of up to 6 glass layers that result in the closest possible match.
-* **Economical Mode:** If 3 layers of glass produce the same result as 6, the program will automatically prioritize the more resource-efficient sequence.
+* **Economical Mode:** If 3 layers of glass produce the same result as 8, the program will automatically prioritize the more resource-efficient sequence.
 * **Beam Preview:** A real-time visualization of how the beacon beam will look in-game.
 
 ### 2. Beacon Gradient Generator
